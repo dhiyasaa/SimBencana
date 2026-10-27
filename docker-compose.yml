@@ -1,0 +1,55 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simbencana
+    ports:
+      - "7604:90"      # web (tetap 7604)
+    volumes:
+      - ./var/www/html:/var/www/html
+    networks:
+      - simbencana-network
+    depends_on:
+      - rekdb
+
+  rekdb:
+    image: mysql:latest
+    restart: always
+    container_name: rekdb
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: simbencana
+      MYSQL_USER: dtiunand
+      MYSQL_PASSWORD: password
+    ports:
+      - "4306:3306"    # ubah ke 4306
+    networks:
+      - simbencana-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9091:9090"    # ubah ke 9091
+    networks:
+      - simbencana-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"    # ubah ke 3001
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - simbencana-network
+
+networks:
+  simbencana-network:
+    driver: bridge
+
+volumes:
+  grafana-data:
